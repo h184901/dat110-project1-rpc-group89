@@ -12,9 +12,15 @@ public class Message {
 		
 		// TODO - START
 		
-		if (true)
-			throw new UnsupportedOperationException(TODO.constructor("Message"));
-			
+		if (data == null) {
+            throw new IllegalArgumentException("Message payload (data) cannot be null");
+        }
+
+        if (data.length > 127) {
+            throw new IllegalArgumentException("Message payload too large: " + data.length + " bytes (max 127)");
+        }
+
+        this.data = data;
 		// TODO - END
 	}
 

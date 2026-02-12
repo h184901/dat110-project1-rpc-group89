@@ -13,17 +13,31 @@ public class MessageUtils {
 
 	public static byte[] encapsulate(Message message) {
 		
-		byte[] segment = null;
-		byte[] data;
-		
+
 		// TODO - START
 		
 		// encapulate/encode the payload data of the message and form a segment
 		// according to the segment format for the messaging layer
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-			
+        byte[] segment = new byte[SEGMENTSIZE];
+        byte[] data;
+
+        if(message == null){
+            throw new IllegalArgumentException("message cannot be null");
+        }
+
+        data = message.getData();
+
+        if(data == null){
+            throw new IllegalArgumentException("message data cannot be null");
+        }
+
+        if(data.length>127){
+            throw new IllegalArgumentException("message data too long: " + data.length);
+        }
+
+        segment[0] = (byte) data.length;
+        System.arraycopy(data, 0, segment, 1, data.length);
+
 		// TODO - END
 		return segment;
 		
@@ -35,12 +49,20 @@ public class MessageUtils {
 		
 		// TODO - START
 		// decapsulate segment and put received payload data into a message
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
+        if(segment == null){
+            throw new IllegalArgumentException("segment cannot be null");
+        }
+        if(segment.length != SEGMENTSIZE){
+            throw new IllegalArgumentException("segment must be " + SEGMENTSIZE + " bytes");
+        }
+        int length = Byte.toUnsignedInt(segment[0]);
+        if(length>127){
+            throw new IllegalArgumentException("invalid payload length in header: " + length);
+        }
+        byte[] data = Arrays.copyOfRange(segment, 1, 1+length);
+        message = new Message(data);
 		// TODO - END
-		
+
 		return message;
 		
 	}

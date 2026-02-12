@@ -38,11 +38,18 @@ public class MessageConnection {
 		
 		// TODO - START
 		// encapsulate the data contained in the Message and write to the output stream
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-			
-		// TODO - END
+        if(message == null){
+            throw new IllegalArgumentException("message cannot be null");
+        }
+        byte[] segment = MessageUtils.encapsulate(message);
+
+        try{
+            outStream.write(segment);
+            outStream.flush();
+
+        }catch(IOException e){
+            throw new RuntimeException("failed to send message" ,e);
+        }
 
 	}
 
@@ -53,14 +60,17 @@ public class MessageConnection {
 		
 		// TODO - START
 		// read a segment from the input stream and decapsulate data into a Message
-		
-		if (true)
-			throw new UnsupportedOperationException(TODO.method());
-		
-		// TODO - END
-		
-		return message;
-		
+        byte[] segment = new byte[MessageUtils.SEGMENTSIZE];
+
+        try{
+            inStream.readFully(segment);
+
+            message = MessageUtils.decapsulate(segment);
+            return message;
+
+        }catch(IOException e){
+            throw new RuntimeException("failed to recieve message", e);
+        }
 	}
 
 	// close the connection by closing streams and the underlying socket	

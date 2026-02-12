@@ -35,31 +35,45 @@ public class RPCServer {
 		System.out.println("RPC SERVER ACCEPTED");
 		
 		boolean stop = false;
-		
-		while (!stop) {
-	    
-		   byte rpcid = 0;
-		   Message requestmsg, replymsg;
-		   
-		   // TODO - START
-		   // - receive a Message containing an RPC request
-		   // - extract the identifier for the RPC method to be invoked from the RPC request
-		   // - extract the method's parameter by decapsulating using the RPCUtils
-		   // - lookup the method to be invoked
-		   // - invoke the method and pass the param
-		   // - encapsulate return value 
-		   // - send back the message containing the RPC reply
-			
-		   if (true)
-				throw new UnsupportedOperationException(TODO.method());
-		   
-		   // TODO - END
 
-			// stop the server if it was stop methods that was called
-		   if (rpcid == RPCCommon.RPIDSTOP) {
-			   stop = true;
-		   }
-		}
+        while (!stop) {
+            try {
+                byte rpcid = 0;
+                Message requestmsg, replymsg;
+
+                requestmsg = connection.receive();
+                byte[] rpcdata = requestmsg.getData();
+
+                rpcid = rpcdata[0]; // IKKE unsigned-cast her
+
+                System.out.println("RPC SERVER received rpcid = " + rpcid);
+                System.out.println("Registered RPC IDs: " + services.keySet());
+
+                byte[] param = RPCUtils.decapsulate(rpcdata);
+                RPCRemoteImpl impl = services.get(rpcid);
+
+                if (impl == null) {
+                    throw new RuntimeException("No rpc service registered for rpcid=" + rpcid);
+                }
+
+                byte[] returnval = impl.invoke(param);
+                byte[] replydata = RPCUtils.encapsulate(rpcid, returnval);
+
+                replymsg = new Message(replydata);
+                connection.send(replymsg);
+
+                if (rpcid == RPCCommon.RPIDSTOP) {
+                    stop = true;
+                }
+
+            } catch (Exception e) {
+                System.out.println("RPC SERVER ERROR:");
+                e.printStackTrace();
+
+                // Viktig: stopp serveren pent, ellers kan den stå i rar tilstand
+                stop = true;
+            }
+        }
 	
 	}
 	
